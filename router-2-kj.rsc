@@ -35,4 +35,4 @@ add network=192.168.102.0/32
 add network=52.52.52.0/24
 add network=53.53.53.0/24
 /system identity
-set name="Router 2 CR"
+set name="Router 2 KJ"
