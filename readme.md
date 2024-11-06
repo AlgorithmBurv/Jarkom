@@ -88,8 +88,7 @@ Setiap router diberi konfigurasi alamat IP pada interface yang terhubung ke LAN 
 - Router R2 (KJ - Pusat): Menggunakan jaringan 192.168.200.0/24 untuk LAN dan menjadi router pusat untuk koneksi antar kampus dengan koneksi IP 10.10.10.2/24 ke R1 dan 11.11.11.1/24 ke R3.
 - Router R3 (KHI): Menggunakan jaringan 192.168.300.0/24 untuk LAN dan koneksi IP 11.11.11.2/24 ke R2.
 
-Tunnel digunakan untuk menghubungkan router antar kampus:
-R1 (CR) terhubung ke R2 (KJ) dengan IP tunnel 10.10.10.1/24 dan 10.10.10.2/24.
+Tunnel digunakan untuk menghubungkan router antar kampus, R1 (CR) terhubung ke R2 (KJ) dengan IP tunnel 10.10.10.1/24 dan 10.10.10.2/24.
 R3 (KHI) terhubung ke R2 (KJ) dengan IP tunnel 11.11.11.1/24 dan 11.11.11.2/24.
 Penggunaan tunnel ini memungkinkan jaringan antar kampus berkomunikasi secara langsung seolah-olah berada dalam satu jaringan yang sama. Dengan topologi ini, setiap kampus dapat mengakses jaringan lokal kampus lainnya melalui routing yang disediakan oleh router pusat (KJ).
 
