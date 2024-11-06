@@ -11,38 +11,91 @@ Matkul : Jaringan Komputer Lanjut
 
 # CASED
 
-1. Buat Set Up address untuk masing-masing Router dan Laptop:
+![TopologiJaringan](NewTopologi.png)
 
-- Laptop:
-- Laptop 1: 192.168.101.1/24
-- Laptop 2: 192.168.102.1/24
-- Laptop 3: 192.168.103.1/24
-- Router:
-- Router 1 CR:
-  1. Either 2: 192.168.101.1/24
-  2. Either 3: 51.51.51.2
-  3. Either 4: 53.53.53.2
-- Router 2 KJ:
-  1. Either 2: 192.168.102.1/24
-  2. Either 3: 53.53.53.1
-  3. Either 4: 52.52.52.1
-- Router 3 KHI:
-  1. Either 2: 192.168.103.1/24
-  2. Either 3: 51.51.51.1
-  3. Either 4: 52.52.52.2
+# Konfigurasi
 
-2. Buat set up untuk DHCP server masing-masing laptop
-3. Buat set up untuk RIP interface ke all dan network sebagai berikut:
-   - Network Router 1 CR:
-   - 192.168.101.0/24
-   - 51.51.51.0/24
-   - 53.53.53.0/24
-   - Network Router 2 KJ:
-   - 192.168.102.0/24
-   - 53.53.53.0/24
-   - 52.52.52.0/24
-   - Network Router 3 KHI:
-   - 192.168.103.0/24
-   - 51.51.51.0/24
-   - 52.52.52.0/24
-4. Lakukan testing dengan melakukan ping pada setiap perangkat
+## Router 1 CR
+
+### Setting IP untuk antarmuka
+
+/ip address add address=192.168.100.1/24 interface=ether1
+/ip address add address=10.10.10.1/24 interface=ether4
+
+### Setting IP untuk LAN lokal
+
+/ip address add address=192.168.110.1/24 interface=ether2
+/ip address add address=192.168.101.1/24 interface=ether3
+
+### Tunnel ke R2
+
+/interface gre add name=tunnel-to-R2 remote-address=10.10.10.2 local-address=10.10.10.1
+/ip address add address=10.10.10.1/24 interface=tunnel-to-R2
+
+### Route ke jaringan lainnya melalui tunnel
+
+/ip route add dst-address=192.168.200.0/24 gateway=10.10.10.2
+/ip route add dst-address=192.168.300.0/24 gateway=10.10.10.2
+/ip route add dst-address=192.168.12.0/24 gateway=10.10.10.2
+
+## Router 2 KJ
+
+### Setting IP untuk antarmuka
+
+/ip address add address=192.168.200.1/24 interface=ether1
+/ip address add address=10.10.10.2/24 interface=ether4
+
+### Tunnel ke R1 dan R3
+
+/interface gre add name=tunnel-to-R1 remote-address=10.10.10.1 local-address=10.10.10.2
+/interface gre add name=tunnel-to-R3 remote-address=11.11.11.2 local-address=11.11.11.1
+/ip address add address=10.10.10.2/24 interface=tunnel-to-R1
+/ip address add address=11.11.11.1/24 interface=tunnel-to-R3
+
+### Route ke jaringan lainnya melalui tunnel
+
+/ip route add dst-address=192.168.100.0/24 gateway=10.10.10.1
+/ip route add dst-address=192.168.300.0/24 gateway=11.11.11.2
+/ip route add dst-address=192.168.21.0/24 gateway=11.11.11.2
+
+## Router 3 KHI
+
+### Setting IP untuk antarmuka
+
+/ip address add address=192.168.300.1/24 interface=ether1
+/ip address add address=11.11.11.2/24 interface=ether4
+
+### Tunnel ke R2
+
+/interface gre add name=tunnel-to-R2 remote-address=11.11.11.1 local-address=11.11.11.2
+/ip address add address=11.11.11.2/24 interface=tunnel-to-R2
+
+### Route ke jaringan lainnya melalui tunnel
+
+/ip route add dst-address=192.168.200.0/24 gateway=11.11.11.1
+/ip route add dst-address=192.168.100.0/24 gateway=11.11.11.1
+/ip route add dst-address=192.168.10.0/24 gateway=11.11.11.1
+
+# Analisa
+
+## Topologi
+
+Topologi yang dibuat ini mencakup tiga kampus (CR, KJ, dan KHI) yang terhubung melalui jaringan WAN menggunakan tunnel. Kampus KJ berfungsi sebagai pusat jaringan yang mengatur lalu lintas data antara kampus CR dan KHI. Setiap kampus memiliki satu router utama yang terhubung ke satu switch lokal dan jaringan LAN di masing-masing kampus.
+
+Setiap router diberi konfigurasi alamat IP pada interface yang terhubung ke LAN lokal dan interface yang terhubung ke jaringan eksternal (WAN/tunnel). Berikut adalah analisis konfigurasi IP:
+
+- Router R1 (CR): Menggunakan jaringan 192.168.110.0/24 dan 192.168.101.0/24 untuk koneksi LAN, dan 192.168.100.1/24 untuk koneksi ke internet.
+- Router R2 (KJ - Pusat): Menggunakan jaringan 192.168.200.0/24 untuk LAN dan menjadi router pusat untuk koneksi antar kampus dengan koneksi IP 10.10.10.2/24 ke R1 dan 11.11.11.1/24 ke R3.
+- Router R3 (KHI): Menggunakan jaringan 192.168.300.0/24 untuk LAN dan koneksi IP 11.11.11.2/24 ke R2.
+
+Tunnel digunakan untuk menghubungkan router antar kampus:
+R1 (CR) terhubung ke R2 (KJ) dengan IP tunnel 10.10.10.1/24 dan 10.10.10.2/24.
+R3 (KHI) terhubung ke R2 (KJ) dengan IP tunnel 11.11.11.1/24 dan 11.11.11.2/24.
+Penggunaan tunnel ini memungkinkan jaringan antar kampus berkomunikasi secara langsung seolah-olah berada dalam satu jaringan yang sama. Dengan topologi ini, setiap kampus dapat mengakses jaringan lokal kampus lainnya melalui routing yang disediakan oleh router pusat (KJ).
+
+Routing digunakan untuk mengarahkan paket antar jaringan melalui router pusat (R2 - KJ).
+Di setiap router, ditambahkan rute menuju jaringan lainnya melalui tunnel yang menghubungkan antar kampus:
+
+- R1 memiliki rute menuju jaringan 192.168.200.0/24 (KJ) dan 192.168.300.0/24 (KHI) melalui tunnel ke R2.
+- R2 mengatur rute ke semua jaringan (CR dan KHI) sebagai pusat, sehingga semua lalu lintas data antar kampus harus melewati R2.
+- R3 memiliki rute menuju jaringan 192.168.100.0/24 (CR) dan 192.168.200.0/24 (KJ) melalui tunnel ke R2.
